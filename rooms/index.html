@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Rooms</title>
+    <link rel="stylesheet" href="../examples/css/style.css">
+    <script type="text/javascript" src="../dist/paper-full.js"></script>
+    <script type="text/paperscript" canvas="canvas">
+        var testCircle = new Path.Circle({
+            radius: 10,
+        });
+
+        var root = new Group();
+        root.applyMatrix = false;
+
+        var CHILD_SCALE_FACTOR = 0.1;
+
+        function Room(point, radius) {
+            var that = this;
+
+            this.myScaleFactor = 1.0; // Until we're told better.
+
+            this.radius = radius;
+            var color = 'red';
+
+            // Wrap CompoundPath in a Group, since CompoundPaths directly
+            // applies the transformations to the content, just like Path.
+            var room = new CompoundPath({
+                children: [
+                    new Path.Circle({
+                        radius: radius
+                    }),
+/*        
+                    new Path.Circle({
+                        center: radius / 8,
+                        radius: radius / 3
+                    })
+*/
+                ],
+//                fillColor: new Color(gradient, 0, radius, radius / 8),
+                fillColor: color,
+            });
+
+            room.position = point;
+
+            room.on('mouseenter', function() {
+                room.fillColor = 'green';
+            });
+
+            room.on('mouseleave', function() {
+                room.fillColor = color;
+            });
+
+            room.on('mousedrag', function(event) {
+                // room.position += event.delta;
+            });
+
+
+            room.on('mousedown', function(event) {
+	        // root.position += 10;
+                // root.scaling *= 1.2;
+
+                that.animateToCenter();
+            });
+
+            root.addChild(room);
+
+            this.item = room;
+        }
+
+        Room.prototype.animateToCenter = function() {
+            var room = this.item;
+            var position = room.position;
+
+            // Do the scaling before we compute the new location so
+            // that the new scale is correctly taken into account.
+            ++clickCount;
+            if (clickCount > 3) {
+                if (scaleDirection > 1) {
+                    scaleDirection = 0.8;
+                } else {
+                    scaleDirection = 1.2;
+                }
+                clickCount = 0;
+            }
+            root.scaling *= scaleDirection;
+
+            var globalMatrix = room.globalMatrix;
+
+            var size = paper.view.size;
+            var center = paper.view.center;
+            var globalPosition = position.transform(globalMatrix);
+
+            // console.log("view width: " + size.width + " height: " + size.height);
+            console.log("global position: (" + globalPosition.x + ", " + globalPosition.y + ")");
+            // console.log("position: (" + position.x + ", " + position.y + ")");
+
+            // Want the global position to go to the center of the canvas
+            root.position += (center - globalPosition);
+        };
+
+        // ----------------------------------------------------------------------
+
+        {
+            var parent = new Room(new Point(100, 100), 100);
+            var child = new Room(new Point(400, 100), 100);
+            // child.joinRoom(parent);
+        }
+
+
+        // new Room(new Point(250, 150), 60);
+
+        var clickCount = 0;
+        var scaleDirection = 1.2;
+    </script>
+</head>
+<body>
+    <canvas id="canvas" resize></canvas>
+</body>
+</html>
